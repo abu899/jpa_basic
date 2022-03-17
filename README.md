@@ -39,6 +39,8 @@ JPA는 특정 데이터베이스에 종속되지 않는다
     - 사용하고 버려야한다
 - JPA의 모든 데이터는 `Transaction` 안에서 실행된다!! (매우 중요)
 
+---
+
 ## Persistent Context (영속성 컨텍스트)
 
 `Entity`를 영구 저장하는 환경이라는 뜻! 엄청나게 중요하다!
@@ -98,3 +100,30 @@ JPA는 특정 데이터베이스에 종속되지 않는다
   - EntityManager.detach(Entity)
   - EntityManager.clear()
   - EntityManager.close()
+
+---
+
+## Entity Mapping
+
+### Overview
+
+- 객체와 테이블 매핑
+  - `@Entity`, `@Table`
+- 필드와 컬럼 매핑
+  - `@Column`
+- 기본 키 매핑
+  - `@Id`
+- 연관관계 매핑
+  - `@ManyToOne`, `@JoinColumn`
+
+### @Entity
+
+- `@Entity`가 붙은 클래스는 JPA가 관리하며 엔티티라고 한다
+- JPA를 사용해서 테이블과 매핑하려는 클래스는 반드시! `@Entity` 필수
+- 주의
+  - 기본 생성자 필수!!(파라미터가 없는 public 또는 protected 생성자)
+  - final 클래스, enum, interface, inner 클래스 사용하면 안된다
+  - 저장할 필드에 final을 사용하면 안된다
+
+
+
