@@ -18,7 +18,7 @@ public class JpaMain {
 //            addMember(em);
 //            findMember(em);
 //            removeMember(em);
-            updateMember(em);
+//            updateMember(em);
             tx.commit();
         } catch (Exception e) {
             tx.rollback();
@@ -28,17 +28,18 @@ public class JpaMain {
         emf.close();
     }
 
+
     private static void addMember(EntityManager em) {
         Member member = new Member();
         member.setId(2L);
-        member.setName("helloB");
+        member.setUsername("helloB");
         em.persist(member);
     }
 
     private static void findMember(EntityManager em) {
         Member findMember = em.find(Member.class, 1L);
         System.out.println("findMember.getId() = " + findMember.getId());
-        System.out.println("findMember.getName() = " + findMember.getName());
+        System.out.println("findMember.getName() = " + findMember.getUsername());
     }
 
     private static void removeMember(EntityManager em) {
@@ -48,7 +49,7 @@ public class JpaMain {
 
     private static void updateMember(EntityManager em) {
         Member findMember = em.find(Member.class, 1L);
-        findMember.setName("HelloChangeJPA");
+        findMember.setUsername("HelloChangeJPA");
     }
 
 
