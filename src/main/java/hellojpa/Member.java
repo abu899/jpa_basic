@@ -4,7 +4,7 @@ import javax.persistence.*;
 
 @Entity
 //@Table(name = "MBR") // 매핑할 테이블 이름 지정
-public class Member {
+public class Member extends BaseEntity{
 
     @Id @GeneratedValue
     private Long id;
