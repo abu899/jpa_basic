@@ -488,3 +488,139 @@ JPA의 데이터 타입 분류
 - 실무에서는 값 타입 컬렉션 대신에 일대다 관계를 고려한다
 - 일대다 관계를 위한 엔티티를 만들고, 여기에서 값 타입을 사용한다
 - 영속선 전이(cascade) + 고아 객체 제거를 사용해서 값 타입 컬렉션처럼 사용한다
+
+---
+
+## 객체형 쿼리 언어
+
+검색을 할 때도 테이블이 아닌 엔티티 객체를 대상으로 검색
+
+### JPQL
+
+- JPA는 SQL을 추상화한 JPQL이라는 객체 지향 쿼리 언어 제공
+- JPQL은 엔티티 객체를 대상으로 쿼리!
+- SQL을 추상화해서 특정 데이터베이스 SQL에 의존하지 않는다!
+- 한마디로 `객체 지향 SQL`
+
+### Criteria
+
+- 문자가 아닌 자바코드로 JPQL을 작성할 수 있음
+- JPQL 빌더 역할
+- JPA 공식 기능
+- 하지만 너무 복잡하고 실용성이 없다.
+
+### QueryDSL
+
+- 문자가 아닌 자바코드로 JPQL을 작성할 수 있음
+- JPQL 빌더 역할
+- 컴파일 시점에 문법 오류를 찾을 수 있다
+- 동적 쿼리 작성이 편리하다!
+- 실무 사용에 적합하다
+
+### 네이티브 SQL
+
+- JPA가 제공하는 SQL을 직접 사용하는 기능
+- JPQL로 해결할 수 없는 특정 데이터베이스에 의존적인 기능
+  - 오라클 connected by 등
+
+---
+
+## JPQL (Java Persistence Query Language)
+
+### 기본 문법
+
+`select m from Member as m where m.age > 18`
+
+- 엔티티와 속성은 대소문자를 구분한다!
+  - Member와 age 같은..
+- JPQL 키워드는 대소문자를 구분하지 않는다
+  - select, from, where
+- 테이블 이름이 아닌, 엔티티 이름을 사용한다
+- 별칭(alias)는 필수, as는 생략 가능
+- 반환 타입
+  - TypeQuery
+    - 반환 타입이 명확할 때
+  - Query
+    - 반환 타입이 명확하지 않을 때
+
+### 프로젝션
+
+Select 절에 조회할 대상을 지정하는 것
+
+- 엔티티, 임베디드 타입, 스칼라 타입
+  - `select m From Member m` -> 엔티티 프로젝션
+  - `select m.team From Member m` -> 엔티티 프로젝션
+  - `select m.address From Member m` -> 임베디드 타입 프로젝션
+  - `select m.age, m.username From Member m` -> 스칼라 타입 프로젝션
+  - DISTINCT로 중복 제거 가능
+- 엔티티 프로젝션된 결과는 영속성 컨텍스트에서 모두 관리가 되며 수정 가능해진다.
+- 여러 값을 조회하는 프로젝션에서는 DTO를 사용하자!
+
+### 페이징
+
+JPA는 페이징을 다음 두 API로 추상화
+
+- `setFirstResult(int startPosition)`
+  - 조회 시작 위치(0부터 시작)
+- `setmaxResults(int maxResult)`
+  - 조회할 데이터 수
+
+### JOIN
+
+SQL join과 같지만, 엔티티를 중심으로 join이 진행된다
+
+- 내부 조인
+  - `SELECT m FROM Member m [INNER] JOIN m.team t`
+- 외부 조인
+  - `SELECT m FROM Member m LEFT [OUTER] JOIN m.team t`
+- ON 절을 활용한 JOIN
+  - 조인 대상 필터링
+    - `SELECT m,t FROM Member m LEFT JOIN m.team t on t.name = 'A'`
+  - 연관관계가 없는 엔티티 외부 조인
+    - `SELECT m,t FROM Member m LEFT JOIN Team t on m.username = t.name`
+
+### SubQuery
+
+`SELECT m from Member m where m.age > (SELECT avg(m2.age) from Member m2)`
+
+- Nested query
+- [NOT] EXISTS
+  - 서브쿼리에 결과가 존재하면 참
+  - {ALL | ANY | SOME} (SubQuery)
+  - ALL은 모두 만족하면 참
+  - ANY, SOME은 조건을 하나라도 만족하면 참
+- [NOT] IN (SubQuery)
+  - 서브쿼리의 결과 중 하나라도 같은 것이 있으면 참
+- JPA 서브쿼리의 한계
+  - JPA 표준 스펙에서는 WHERE, HAVING 절에만 서브쿼리 사용가능..
+    - 하지만 `Hibernates`에서는 select절에서도 가능!
+  - **FROM 절의 서브쿼리**는 현재 JPQL에서 불가능
+    - 조인으로 풀 수 있으면 풀어서 해결해야 한다
+
+### JPQL의 타입 표현
+
+- 문자
+  - `' '` single quotation안에 넣으면 된다
+  - 'HELLO', 'JPA'
+- 숫자
+  - 10L(Long), 10D(Double), 10F(Float)
+- Boolean
+  - TRUE, FALSE
+- Enum
+  - 패키지명을 포함해서 넣어야한다 (주의!!)
+
+
+### JPQL 기본함수 및 사용자 정의 함수
+
+- 기본 함수
+  - CONCAT
+  - SUBSTRING
+  - TRIM
+  - LOWER, UPPER
+  - LENGTH
+  - LOCATE
+  - ABS, SQRT, MOD
+  - SIZE, INDEX(JPA 용도)
+  - 또한 DB 종속적으로 이미 `registFunction`으로 등록되어 있는 함수들이 존재한다
+- 사용자 정의 함수
+  - 사용하는 DB의 dialect를 상속받고, 사용자 정의 함수를 등록해서 사용한다
